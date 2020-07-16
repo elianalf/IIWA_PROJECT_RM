@@ -10,6 +10,8 @@ $ catkin_make
 # Come eseguire il progetto :
 ```
 Per l'esecuzione della traiettoria:
+0)Salvare i file pe e ped nella cartella in cui si lancia il nodo 
+
 1)Lanciare il world di Gazebo and spawnare il robot
 $ roslaunch iiwa_gazebo iiwa_gazebo.launch
 
@@ -26,3 +28,5 @@ $ roslaunch iiwa_project admittance_control.launch
 
 # Note:
 Nella repository sono presenti due video che mostrano l'esecuzione dei due nodi. 
+
+adm_fz1N.mp4 mostra la risposta del robot all'applicazione di una forza lineare lungo l'asse z di circa 10 N, mentre trajectory.mp4 mostra l'esecuzione della traiettoria a f=800Hz
