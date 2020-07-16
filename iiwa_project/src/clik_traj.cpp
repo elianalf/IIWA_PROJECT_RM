@@ -325,7 +325,7 @@ void CLIK_::ctrl_loop(){
       // ** SECOND TASK ** 
       //cl.compute_w_dq(q_current, w_dq);
      // for (int j=0; j<7;j++)
-      //   q0[j]=1*w_dq[j];
+      //   q0[j]=0.1*w_dq[j];
       
       e[0]=ref_path.poses[index].pose.position.x - p_cur[0];
       e[1]=ref_path.poses[index].pose.position.y - p_cur[1];
