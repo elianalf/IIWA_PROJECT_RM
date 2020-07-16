@@ -32,3 +32,4 @@ $ roslaunch iiwa_project admittance_control.launch
 Nella repository sono presenti due video che mostrano l'esecuzione dei due nodi. 
 
 adm_fz1N.mp4 mostra la risposta del robot all'applicazione di una forza lineare lungo l'asse z di circa 15 N, mentre trajectory.mp4 mostra l'esecuzione della traiettoria a f=800Hz
+
