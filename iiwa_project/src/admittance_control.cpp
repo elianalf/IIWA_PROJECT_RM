@@ -47,6 +47,7 @@ class ADM_CONTROL {
 };
 
 
+//CONSTRUCTOR
 ADM_CONTROL::ADM_CONTROL(){
    cout << "constructor"<<endl;
     joint_pos_cmd[0] = n.advertise<std_msgs::Float64>("/iiwa/joint1_position_controller/command", 0);
@@ -64,6 +65,7 @@ ADM_CONTROL::ADM_CONTROL(){
 	
 }
 
+//GO TO START POSE
 void ADM_CONTROL::goto_work_pose() {
 	double q_data[7];
 	ros::Rate r(50);
@@ -84,15 +86,24 @@ void ADM_CONTROL::goto_work_pose() {
       r.sleep();
    }
    sleep(1);
-   //cout<<"Work pose [0,6; 0; 0.2]"<<endl;
 }
+
+
+//GET CURRENT JOINT STATES 
+void ADM_CONTROL::joint_states_cb(sensor_msgs::JointState js){
+   for(int i=0; i<7; i++ ){
+		q_cur[i] = js.position[i];
+      //cout<<"Current joint states: "<< q_cur[i];
+   }
+}
+
 
 Eigen::Matrix<double,3,3> skew(Eigen::Matrix<double,3,1> v)
 {
 	Eigen::Matrix<double,3,3> S;
 	S << 0.0,		-v[2],	 v[1],		//Skew-symmetric matrix
-						 v[2],		 0.0,	-v[0],
-						-v[1],		 v[0], 	 0.0;
+						 v[2],	 0.0,	-v[0],
+						-v[1],	 v[0],  0.0;
 	return S;
 }
 
@@ -105,11 +116,9 @@ Eigen::Matrix<double,3,1> QuatErr(Eigen::Matrix<double,4,1> Qd, Eigen::Matrix<do
 	Eigen::Matrix<double,3,1> eps_e;
 	Eigen::Matrix<double,3,1> eo;
 	Eigen::Matrix<double,3,3> S;
-
 	eps_d <<Qd[1], Qd[2], Qd[3];
 	eps_e <<Qe[1], Qe[2], Qe[3];
 	S = skew(eps_d);
-	
 	eo = Qe[0] * eps_d - Qd[0] * eps_e - S * eps_e;
 	return eo;
 	
@@ -132,13 +141,7 @@ Eigen::Matrix<double,4,1> quat_prop_function( Eigen::Matrix<double,3,1> w, Eigen
 
 
 
-void ADM_CONTROL::joint_states_cb(sensor_msgs::JointState js){
-   for(int i=0; i<7; i++ ){
-		q_cur[i] = js.position[i];
-      //cout<<"Current joint states: "<< q_cur[i];
-   }
-}
-
+//DIRECT KINEMATICS
 void ADM_CONTROL::compute_dirkin() {
    KIN_LIB_IIWA cl;
 	Eigen::Matrix4d T;
@@ -169,6 +172,8 @@ void ADM_CONTROL::compute_dirkin() {
 	}
 }
 
+
+//ADMITTANCE CONTROL AND CLIK 
 void ADM_CONTROL::ctrl_loop(){
   // cout<<"wait"<<endl;
    double q_data[7];
@@ -180,11 +185,11 @@ void ADM_CONTROL::ctrl_loop(){
    Eigen::Matrix< double, 6, 1> k ;
    Eigen::Matrix< double, 6, 1> kp ;
    Eigen::Matrix< double, 6, 1> kd ;
-    k << 50, 50, 50, 1, 1, 1;
+    k << 100, 100, 100, 1, 1, 1;
     m << 10, 10, 10, 1, 1, 1;
-    //kp <<0, 0, 0, 0, 0, 0; 
-    kp <<500, 500, 500, 200, 200, 200;
-    kd << 100,100, 100, 100, 100, 100;
+    kp <<0, 0, 0, 0, 0, 0; 
+    //kp <<700, 700, 700, 500, 500, 500;
+    kd << 500,500, 500, 500, 500, 500;
    Eigen::Matrix< double, 6, 6> Kp = kp.asDiagonal();
    Eigen::Matrix< double, 6, 6> K = k.asDiagonal();
    Eigen::Matrix< double, 6, 6> Kd = kd.asDiagonal();
@@ -221,57 +226,36 @@ void ADM_CONTROL::ctrl_loop(){
    dq.setZero();
    e.setZero();
    he.setZero();
-  // sx.setZero();
-  // sy.setZero();
-  // sz.setZero();
+   sx.setZero();
+   sy.setZero();
+   sz.setZero();
    int index=0;
+   
    ros::Rate c_rate(800);
-   he[0] = 0;
-   he[1] = 0;
-   he[2] = 0;
-   he[3] = 0;
-   he[4] = 0;
-   he[5] = 0;
-   /*o_i[0] = o_cur[0];
-   o_i[1] =  o_cur[1];
-   o_i[2] =  o_cur[2];
-   o_i[3] =  o_cur[3];*/
+
    o_i = o_cur;
-   /*x_i[0] = p_cur[0];
-   x_i[1] = p_cur[1];
-   x_i[2] = p_cur[2]; */
    x_i = p_cur;
-   /*z[0] = p_cur[0];
-   z[1] = p_cur[1];
-   z[2] = p_cur[2]; */
    p_z = p_cur;
-  /* o_z[0]=o_i[0]  ;
-   o_z[1]=o_i[1]  ;
-   o_z[2]=o_i[2] ;
-   o_z[3]=o_i[3] ;*/
    o_z=o_i;
   while(index<n_samples){
       he[0] = 0;
       he[1]= 0;
       he[2]= 0;
-      if((index>100)&&(index<300))
-         { he[0]= 8;
-            he[1]= 8; 
-            he[2]= 8;// 2 = z; 4 rot intorno y
+     if((index>50)&&(index<850))
+         { 
+            he[2]= 15;// 2 = z; 4 rot intorno y
          }
-     /*if((index>50)&&(index<200))
+    /* if((index>50)&&(index<850))
          { double _arg ;
-            _arg=2*3.14*(index%50)/50;
-            he[2] = 1.5*sin(_arg);
+            _arg=2*3.14*(index%400)/400;
+            he[2] = 15*sin(_arg);
          }*/
+    cout<<"HE: "<<he<<endl;
     
      z_tilde_o=QuatErr(o_i,o_z);    
-     //cout<<"ERR O: "<<z_tilde_o;
-     
      z_tilde.topRows<3>()=(x_i-p_z);
-     
      z_tilde.bottomRows<3>()=z_tilde_o;
-     cout<<"HE: "<<he<<endl;
+     
      z_dd = M.inverse()*(he - Kd*z_d + Kp*z_tilde);
       //cout<<"z_dd "<<z_dd<<endl;
       
@@ -279,18 +263,14 @@ void ADM_CONTROL::ctrl_loop(){
      //cout<<"z_d "<<z_d<<endl;
      
      quat_prop = quat_prop_function( z_d.bottomRows<3>(), o_z); 
-
      o_z = quat_prop*dt + o_z;
      o_z.normalize();
 
      p_z = z_d.topRows<3>() *dt + p_z;
-    //cout<<"z "<<z<<endl;
-     //cout<<"p_cur "<<p_cur<<endl;
      
       cl.compute_jacobian(q_cur,J);
       
 	   e.topRows<3>() = p_z - p_cur;  
-	   
 	   eo=QuatErr(o_z,o_cur);
       e.bottomRows<3>()=eo;
 	   //cout<<"e:"<<endl;
@@ -299,7 +279,6 @@ void ADM_CONTROL::ctrl_loop(){
 
      Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd> cqr(J);
       Jpinv= cqr.pseudoInverse();
-      //dq= Jpinv*( K * e);
       dq= Jpinv*(z_d + K * e);
      // cout<<"q_dot:"<<dq<<endl;
       
@@ -314,24 +293,23 @@ void ADM_CONTROL::ctrl_loop(){
       }
      //cout<<endl;
      
+     // **Vectors to save the results: **
      sx[index]=p_cur[0]-x_i[0];
      sy[index]=p_cur[1]-x_i[1];
      sz[index]=p_cur[2]-x_i[2];
       //cout<<"s: "<<sx[index]<<" "<<sy[index]<<" "<<sz[index]<<endl;
-      
-      
-   euler_angles = Rc.eulerAngles(0, 1, 2);
+      euler_angles = Rc.eulerAngles(0, 1, 2);
       roll[index]=euler_angles[0];
       pitch[index]=euler_angles[1];
       yaw[index]=euler_angles[2];
       c_rate.sleep();
        
-         index++;
+      index++;
    
    }
 
    
- myfile.open ("adm_800s2.txt");
+ myfile.open ("adm_spost5.txt");
 if (!myfile.is_open()) {cout<<"*************ERROR****************";}
   myfile << "[ "; 
      for(int i=0;i < n_samples;i++){
@@ -352,7 +330,7 @@ if (!myfile.is_open()) {cout<<"*************ERROR****************";}
    }
    myfile << " ] \n"; 
    myfile.close();
-    myfile.open ("adm_800o2.txt");
+    myfile.open ("adm_orient5.txt");
    if (!myfile.is_open()) {cout<<"*************ERROR****************";}
   myfile << "[ "; 
      for(int i=0;i < n_samples;i++){
@@ -394,4 +372,3 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
-
