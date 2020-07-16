@@ -10,7 +10,8 @@ $ catkin_make
 # Come eseguire il progetto :
 ```
 Per l'esecuzione della traiettoria:
-0)Salvare i file pe e ped nella cartella in cui si lancia il nodo 
+0)Salvare i file pe_800.txt e ped_800.txt nella cartella in cui da terminale si lancia il nodo, è consigliabile salvarli nel proprio workspace all'esterno delle cartelle /devel, /src e /build. 
+Es. da ~/ws$ :
 
 1)Lanciare il world di Gazebo and spawnare il robot
 $ roslaunch iiwa_gazebo iiwa_gazebo.launch
