@@ -185,10 +185,10 @@ void ADM_CONTROL::ctrl_loop(){
    Eigen::Matrix< double, 6, 1> k ;
    Eigen::Matrix< double, 6, 1> kp ;
    Eigen::Matrix< double, 6, 1> kd ;
-    k << 100, 100, 100, 1, 1, 1;
+    k << 10, 10, 10, 10, 10, 10;
     m << 10, 10, 10, 1, 1, 1;
     kp <<0, 0, 0, 0, 0, 0; 
-    //kp <<700, 700, 700, 500, 500, 500;
+    //kp <<300, 300, 300, 100, 100, 100;
     kd << 500,500, 500, 500, 500, 500;
    Eigen::Matrix< double, 6, 6> Kp = kp.asDiagonal();
    Eigen::Matrix< double, 6, 6> K = k.asDiagonal();
@@ -238,12 +238,17 @@ void ADM_CONTROL::ctrl_loop(){
    p_z = p_cur;
    o_z=o_i;
   while(index<n_samples){
-      he[0] = 0;
-      he[1]= 0;
+      //he[0] = 0;
+      //he[1]= 0;
       he[2]= 0;
+     // he[4]= 0;
+      /*if((index>50)&&(index<550))
+         { 
+            he[4]= -100; //Ty
+         }*/
      if((index>50)&&(index<850))
          { 
-            he[2]= 15;// 2 = z; 4 rot intorno y
+            he[2]= 15; // fz
          }
     /* if((index>50)&&(index<850))
          { double _arg ;
