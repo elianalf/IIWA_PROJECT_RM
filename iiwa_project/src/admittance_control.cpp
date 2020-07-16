@@ -189,7 +189,7 @@ void ADM_CONTROL::ctrl_loop(){
     m << 10, 10, 10, 1, 1, 1;
     kp <<0, 0, 0, 0, 0, 0; 
     //kp <<300, 300, 300, 100, 100, 100;
-    kd << 500,500, 500, 500, 500, 500;
+    kd << 600,600, 600, 600, 600, 600;
    Eigen::Matrix< double, 6, 6> Kp = kp.asDiagonal();
    Eigen::Matrix< double, 6, 6> K = k.asDiagonal();
    Eigen::Matrix< double, 6, 6> Kd = kd.asDiagonal();
