@@ -320,12 +320,9 @@ void CLIK_::ctrl_loop(){
        cl.compute_jacobian(q_current,J);
 	   //cout<<"Jacobian:"<<endl;
       //cout<<J<<endl;
-      //cout<<"p CONTR: "<<p_cur[0]<<" "<<p_cur[1]<<" "<<p_cur[2]<<endl;
-      //cout<< "vel: "<< des_velocity[index].linear.x<<" "<<des_velocity[index].linear.y<< " "<<des_velocity[index].linear.z<<endl;
-      //cout<<"v angl: "<< des_velocity[index].angular.x <<des_velocity[index].angular.y<<des_velocity[index].angular.z<<endl;
       //cout<< "POINT: "<< ref_path.poses[index].pose.position.x<<" "<<ref_path.poses[index].pose.position.y<< " "<<ref_path.poses[index].pose.position.z<<endl;
       
-      //**SECOND TASK** 
+      // ** SECOND TASK ** 
       //cl.compute_w_dq(q_current, w_dq);
      // for (int j=0; j<7;j++)
       //   q0[j]=1*w_dq[j];
@@ -337,8 +334,8 @@ void CLIK_::ctrl_loop(){
       ey[index]=e[1];
       ez[index]=e[2];
       Rd=Rc;
-     Eigen::Quaterniond quat(Rd);
-     quat.normalize();
+      Eigen::Quaterniond quat(Rd);
+      quat.normalize();
      o[0] = quat.w();
      o[1] = quat.x();
      o[2] = quat.y();
@@ -367,7 +364,7 @@ void CLIK_::ctrl_loop(){
       c_rate.sleep();
  
    }
-   myfile.open ("900hz_1500.txt");
+   myfile.open ("errors.txt");
    if (!myfile.is_open()) {cout<<"*************ERROR****************";}
     myfile << "[ "; 
      for(int i=0;i < _path_size;i++){
